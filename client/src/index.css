@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(240 3.7% 15.9%);
+  }
+  body {
+    background-color: #030014;
+    color: #f1f5f9;
+    font-family: 'Calibri', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(circle at 15% 50%, rgba(98, 0, 255, 0.08), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(0, 212, 255, 0.08), transparent 25%);
+  }
+}
+
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  border-radius: 1rem;
+}
+
+.neon-text-glow {
+  text-shadow: 0 0 10px rgba(138, 43, 226, 0.7), 0 0 20px rgba(138, 43, 226, 0.5);
+}
+
+.neon-border-glow {
+  box-shadow: 0 0 10px rgba(138, 43, 226, 0.5), inset 0 0 10px rgba(138, 43, 226, 0.5);
+}
+
+h1, h2, h3, h4, h5, h6, .brand-font {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+}
+
+/* LIGHT MODE OVERRIDES */
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  background-image: radial-gradient(circle at 15% 50%, rgba(98, 0, 255, 0.03), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(0, 212, 255, 0.03), transparent 25%);
+}
+
+html.light .glass-card {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+html.light .text-slate-100,
+html.light .text-gray-100,
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-gray-400,
+html.light .text-slate-400,
+html.light .text-gray-300 {
+  color: #475569 !important;
+}
+
+html.light .text-gray-500 {
+  color: #64748b !important;
+}
+
+html.light .bg-white\/5,
+html.light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .border-white\/10,
+html.light .border-white\/20,
+html.light .border-white\/30 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .hover\:bg-white\/5:hover {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .hover\:bg-white\/20:hover {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html.light .text-purple-300 {
+  color: #6d28d9 !important;
+}
+
+html.light .text-purple-400 {
+  color: #7e22ce !important;
+}
+
+html.light .text-pink-400 {
+  color: #db2777 !important;
+}
+
+html.light .text-blue-400 {
+  color: #2563eb !important;
+}
+
+html.light .bg-purple-500\/20 {
+  background-color: rgba(139, 92, 246, 0.1) !important;
+}
+
+html.light input,
+html.light textarea,
+html.light select {
+  color: #0f172a !important;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #64748b !important;
+}

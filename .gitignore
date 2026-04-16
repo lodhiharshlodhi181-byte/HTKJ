@@ -1,0 +1,38 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+server/.env
+client/.env
+
+# Python (AI Folder)
+__pycache__/
+*.py[cod]
+*$py.class
+env/
+venv/
+.venv/
+
+# Build outputs
+client/dist/
+client/build/
+server/build/
+ai/build/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store

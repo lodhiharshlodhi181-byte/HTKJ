@@ -1,0 +1,17 @@
+{
+  "name": "ai-education-assistant",
+  "version": "1.0.0",
+  "scripts": {
+    "install:server": "cd server && npm install",
+    "install:client": "cd client && npm install",
+    "install:ai": "cd ai && pip install -r requirements.txt",
+    "install-all": "npm run install:server && npm run install:client && npm run install:ai",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev:ai": "cd ai && uvicorn main:app --reload",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:ai\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
