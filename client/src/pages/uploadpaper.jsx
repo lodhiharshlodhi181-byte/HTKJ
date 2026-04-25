@@ -43,7 +43,8 @@ const UploadPaper = () => {
     });
     
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/ai/analyze-paper', formData, {
+      const aiUrl = import.meta.env.VITE_AI_URL || 'http://127.0.0.1:8000';
+      const res = await axios.post(`${aiUrl}/api/ai/analyze-paper`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setAnalysisResult(res.data);

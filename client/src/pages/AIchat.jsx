@@ -112,7 +112,8 @@ const AIChat = () => {
 
     try {
       // Connects to our Python Service or Node Service that forwards to Python
-      const res = await axios.post('http://127.0.0.1:8000/api/ai/doubt', {
+      const aiUrl = import.meta.env.VITE_AI_URL || 'http://127.0.0.1:8000';
+      const res = await axios.post(`${aiUrl}/api/ai/doubt`, {
         query: userMsg,
         language: language
       });
