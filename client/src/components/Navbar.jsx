@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, LayoutDashboard, MessageSquare, BookOpen, Upload, PieChart, Sun, Moon } from 'lucide-react';
+import { Sparkles, LayoutDashboard, MessageSquare, BookOpen, Upload, PieChart, Sun, Moon, Map, FileText, Award } from 'lucide-react';
 
 const Navbar = () => {
   const location = useLocation();
@@ -50,6 +50,9 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
+    { name: 'Path', path: '/learning-path', icon: <Map size={18} /> },
+    { name: 'Notes', path: '/notes', icon: <FileText size={18} /> },
+    { name: 'Evaluate', path: '/evaluate', icon: <Award size={18} /> },
     { name: 'AI Tutor', path: '/chat', icon: <MessageSquare size={18} /> },
     { name: 'Quizzes', path: '/quiz', icon: <BookOpen size={18} /> },
     { name: 'PYQ Upload', path: '/upload', icon: <Upload size={18} /> },

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, Bot, User, Globe } from 'lucide-react';
+import { Send, Mic, Bot, Globe, Volume2, VolumeX, PlayCircle } from 'lucide-react';
 import axios from 'axios';
 
 const AIChat = () => {
@@ -9,6 +9,8 @@ const AIChat = () => {
   const [input, setInput] = useState('');
   const [language, setLanguage] = useState('English');
   const [isListening, setIsListening] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [speakingIdx, setSpeakingIdx] = useState(null);
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -58,7 +60,7 @@ const AIChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  const speakText = (text, lang) => {
+  const speakText = (text, lang, idx = null) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -70,7 +72,30 @@ const AIChat = () => {
         'Gujarati': 'gu-IN',
         'Marathi': 'mr-IN'
       };
-      utterance.lang = langMap[lang] || 'en-US';
+      const bcpToUse = langMap[lang] || 'en-US';
+      utterance.lang = bcpToUse;
+
+      // Ensure we pick a voice that actually supports the language
+      const voices = window.speechSynthesis.getVoices();
+      // Try exact match, e.g. hi-IN
+      let targetVoice = voices.find(v => v.lang === bcpToUse);
+      // Fallback to broad language code e.g. hi
+      if (!targetVoice) {
+         targetVoice = voices.find(v => v.lang.startsWith(bcpToUse.split('-')[0]));
+      }
+      if (targetVoice) {
+         utterance.voice = targetVoice;
+      }
+      
+      utterance.onstart = () => {
+         if (idx !== null) setSpeakingIdx(idx);
+      };
+      utterance.onend = () => {
+         setSpeakingIdx(null);
+      };
+      utterance.onerror = () => {
+         setSpeakingIdx(null);
+      };
       
       window.speechSynthesis.speak(utterance);
     }
@@ -92,13 +117,17 @@ const AIChat = () => {
         language: language
       });
       
+      const cleanAnswer = res.data.answer.replace(/[*_#]/g, '');
+
       setMessages(prev => {
         const newMsgs = [...prev];
-        newMsgs[newMsgs.length - 1] = { role: 'ai', content: res.data.answer };
+        newMsgs[newMsgs.length - 1] = { role: 'ai', content: cleanAnswer };
         return newMsgs;
       });
       
-      speakText(res.data.answer, language);
+      if (voiceEnabled) {
+        speakText(cleanAnswer, language, messages.length); // messages.length will be the index of the newly added ai message
+      }
     } catch (err) {
       const errorMsg = 'Sorry, the AI service is unavailable right now.';
       setMessages(prev => {
@@ -106,7 +135,9 @@ const AIChat = () => {
         newMsgs[newMsgs.length - 1] = { role: 'ai', content: errorMsg };
         return newMsgs;
       });
-      speakText(errorMsg, 'English');
+      if (voiceEnabled) {
+         speakText(errorMsg, 'English', messages.length);
+      }
     }
   };
 
@@ -146,19 +177,33 @@ const AIChat = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-lg border border-white/10">
-          <Globe size={16} className="text-gray-400"/>
-          <select 
-            value={language} 
-            onChange={(e) => setLanguage(e.target.value)}
-            className="bg-transparent text-sm text-gray-300 focus:outline-none cursor-pointer"
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => {
+              setVoiceEnabled(!voiceEnabled);
+              if (voiceEnabled) window.speechSynthesis.cancel();
+            }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${voiceEnabled ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' : 'bg-white/5 border-white/10 text-gray-500'}`}
+            title="Toggle Voice Output"
           >
-            <option className="bg-[#030014]">English</option>
-            <option className="bg-[#030014]">Hindi</option>
-            <option className="bg-[#030014]">Bengali</option>
-            <option className="bg-[#030014]">Gujarati</option>
-            <option className="bg-[#030014]">Marathi</option>
-          </select>
+            {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            <span className="text-sm font-medium">{voiceEnabled ? 'Voice: On' : 'Voice: Off'}</span>
+          </button>
+          
+          <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-lg border border-white/10">
+            <Globe size={16} className="text-gray-400"/>
+            <select 
+              value={language} 
+              onChange={(e) => setLanguage(e.target.value)}
+              className="bg-transparent text-sm text-gray-300 focus:outline-none cursor-pointer"
+            >
+              <option className="bg-[#030014]">English</option>
+              <option className="bg-[#030014]">Hindi</option>
+              <option className="bg-[#030014]">Bengali</option>
+              <option className="bg-[#030014]">Gujarati</option>
+              <option className="bg-[#030014]">Marathi</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -172,7 +217,20 @@ const AIChat = () => {
                 : 'bg-white/10 border border-white/10 text-gray-200 rounded-bl-none'
             }`}>
               {msg.role === 'ai' && <Bot size={20} className="mt-1 flex-shrink-0 text-purple-400" />}
-              <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+              <div className="flex flex-col gap-2 w-full">
+                 <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                 {msg.role === 'ai' && msg.content !== '...' && (
+                   <div className="flex justify-start mt-1">
+                     <button 
+                       onClick={() => speakText(msg.content, language, idx)}
+                       className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md transition-colors ${speakingIdx === idx ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-black/20 text-gray-400 hover:bg-black/40 hover:text-gray-200'}`}
+                     >
+                       <PlayCircle size={14} className={speakingIdx === idx ? "animate-pulse text-purple-400" : ""} />
+                       {speakingIdx === idx ? "Speaking..." : "Listen"}
+                     </button>
+                   </div>
+                 )}
+              </div>
             </div>
           </div>
         ))}

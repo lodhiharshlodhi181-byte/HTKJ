@@ -138,9 +138,20 @@ const UploadPaper = () => {
                 <h4 className="text-sm text-gray-400 uppercase font-bold tracking-widest mb-3">Expected Hot Topics</h4>
                 <div className="space-y-2">
                   {analysisResult.expectedTopics?.map((topic, i) => (
-                    <div key={i} className="flex items-start gap-2 bg-pink-500/10 px-3 py-2 rounded-lg border border-pink-500/20">
-                      <ChevronRight size={16} className="text-pink-400 mt-0.5 shrink-0"/>
-                      <span className="font-semibold text-pink-100">{topic}</span>
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-pink-500/10 px-3 py-2 rounded-lg border border-pink-500/20">
+                      <div className="flex items-start gap-2">
+                        <ChevronRight size={16} className="text-pink-400 mt-0.5 shrink-0"/>
+                        <span className="font-semibold text-pink-100">{topic}</span>
+                      </div>
+                      <a 
+                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(topic + " tutorial")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1.5 text-xs bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap self-start sm:self-auto border border-red-500/50"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        Watch Video
+                      </a>
                     </div>
                   ))}
                 </div>
@@ -148,9 +159,9 @@ const UploadPaper = () => {
             </div>
           </div>
 
-          <div className="glass-card p-0 overflow-hidden relative border border-white/10">
+          <div className="glass-card p-0 overflow-hidden relative border border-white/10 mock-paper-container">
             <div className="bg-white text-black p-8 md:p-12 font-serif relative">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 print:hidden"></div>
               
               <div className="text-center mb-10 border-b-2 border-black/10 pb-6">
                 <h2 className="text-3xl font-black tracking-widest uppercase mb-2">Mock Test Paper</h2>
@@ -178,6 +189,24 @@ const UploadPaper = () => {
               <div className="mt-16 text-center text-xs font-bold tracking-widest text-gray-400 border-t border-black/10 pt-4">
                 END OF QUESTION PAPER • AI AUTOMATED GENERATION
               </div>
+              
+              <div className="mt-8 flex justify-center pb-4 print:hidden">
+                <button 
+                  onClick={() => window.print()}
+                  className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-full shadow-lg border border-gray-700 transition flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download As PDF
+                </button>
+              </div>
+              
+              <style>{`
+                @media print {
+                  body * { visibility: hidden; }
+                  .mock-paper-container, .mock-paper-container * { visibility: visible; }
+                  .mock-paper-container { position: absolute; left: 0; top: 0; width: 100%; border: none !important; }
+                }
+              `}</style>
             </div>
           </div>
           

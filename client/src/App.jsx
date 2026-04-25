@@ -8,6 +8,9 @@ import Quiz from './pages/Quiz';
 import UploadPaper from './pages/UploadPaper';
 import Analytics from './pages/Analytics';
 import Login from './pages/login';
+import LearningPath from './pages/LearningPath';
+import StudyNotes from './pages/StudyNotes';
+import EvaluateAssignment from './pages/EvaluateAssignment';
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/upload" element={<UploadPaper />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/learning-path" element={<LearningPath />} />
+            <Route path="/notes" element={<StudyNotes />} />
+            <Route path="/evaluate" element={<EvaluateAssignment />} />
           </Routes>
         </main>
       </div>
