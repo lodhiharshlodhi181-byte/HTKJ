@@ -130,6 +130,11 @@ const Quiz = () => {
         num_questions: parseInt(numQuestions)
       });
       
+      if (res.data.error) {
+        alert("AI Error: " + res.data.error);
+        return;
+      }
+
       const newQuizData = res.data;
       setQuizData(newQuizData);
       

@@ -111,23 +111,26 @@ async def handle_learning_path(req: LearningPathRequest):
 async def handle_notes(req: NotesRequest):
     return generate_study_notes(req.topic)
 
+from fastapi import Form
+
 @app.post("/api/ai/evaluate-assignment")
-async def handle_assignment_eval(req: AssignmentRequest = None, file: UploadFile = File(None)):
+async def handle_assignment_eval(
+    question: str = Form(...),
+    answer: Optional[str] = Form(None),
+    max_marks: int = Form(100),
+    file: UploadFile = File(None)
+):
     if file:
         # Extract answer from file
-        answer = extract_text_from_file(file)
-        question = req.question if req else ""
-        max_marks = req.max_marks if req else 100
+        extracted_answer = extract_text_from_file(file)
     else:
         # Use provided answer
-        answer = req.answer
-        question = req.question
-        max_marks = req.max_marks
+        extracted_answer = answer
     
-    if not answer:
+    if not extracted_answer:
         return {"error": "No answer provided"}
     
-    return evaluate_assignment(question, answer, max_marks)
+    return evaluate_assignment(question, extracted_answer, max_marks)
 
 if __name__ == "__main__":
     import uvicorn
