@@ -123,8 +123,8 @@ const Quiz = () => {
     setFinalScore(null);
 
     try {
-      const aiUrl = import.meta.env.VITE_AI_URL || 'http://127.0.0.1:8000/api/ai';
-      const res = await axios.post(`${aiUrl}/quiz`, {
+      const aiUrl = import.meta.env.VITE_AI_URL || 'http://127.0.0.1:8000';
+      const res = await axios.post(`${aiUrl}/api/ai/quiz`, {
         topic,
         difficulty,
         num_questions: parseInt(numQuestions)
