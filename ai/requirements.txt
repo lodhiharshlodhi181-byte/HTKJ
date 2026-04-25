@@ -6,3 +6,4 @@ python-multipart
 PyPDF2
 pytesseract
 Pillow
+python-dotenv
