@@ -6,7 +6,7 @@ import google.generativeai as genai
 import PyPDF2
 import io
 
-async def analyze_paper(files: List[UploadFile]):
+def analyze_paper(files: List[UploadFile]):
     api_key = os.getenv("GEMINI_API_KEY", "")
     
     analyzed_filenames = []
@@ -15,7 +15,7 @@ async def analyze_paper(files: List[UploadFile]):
     # Read all PDFs and aggregate text
     for file in files:
         analyzed_filenames.append(file.filename)
-        content = await file.read()
+        content = file.file.read()
         
         try:
             pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))

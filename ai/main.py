@@ -87,34 +87,34 @@ def read_root():
     return {"status": "AI Engine is running"}
 
 @app.post("/api/ai/doubt")
-async def handle_doubt(req: DoubtRequest):
+def handle_doubt(req: DoubtRequest):
     return solve_doubt(req.query, req.context, req.language)
 
 @app.post("/api/ai/quiz")
-async def handle_quiz_generation(req: QuizRequest):
+def handle_quiz_generation(req: QuizRequest):
     return generate_quiz(req.topic, req.difficulty, req.num_questions)
 
 @app.post("/api/ai/analyze-paper")
-async def handle_paper_upload(files: List[UploadFile] = File(...)):
-    return await analyze_paper(files)
+def handle_paper_upload(files: List[UploadFile] = File(...)):
+    return analyze_paper(files)
 
 @app.post("/api/ai/performance")
-async def handle_performance(data: dict):
+def handle_performance(data: dict):
     # data should contain quiz results logic
     return detect_weak_topics(data)
 
 @app.post("/api/ai/learning-path")
-async def handle_learning_path(req: LearningPathRequest):
+def handle_learning_path(req: LearningPathRequest):
     return generate_learning_path(req.topic)
 
 @app.post("/api/ai/notes")
-async def handle_notes(req: NotesRequest):
+def handle_notes(req: NotesRequest):
     return generate_study_notes(req.topic)
 
 from fastapi import Form
 
 @app.post("/api/ai/evaluate-assignment")
-async def handle_assignment_eval(
+def handle_assignment_eval(
     question: str = Form(...),
     answer: Optional[str] = Form(None),
     max_marks: int = Form(100),
