@@ -5,7 +5,8 @@ import { submitQuizResult } from '../assets/services/userAPI';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
-const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const socketUrl = import.meta.env.VITE_SOCKET_URL || apiUrl.replace(/\/api$/, '');
 const socket = io(socketUrl, { autoConnect: false });
 
 const Quiz = () => {
