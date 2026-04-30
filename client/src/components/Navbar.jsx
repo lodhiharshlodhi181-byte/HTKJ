@@ -17,9 +17,11 @@ const Navbar = () => {
   React.useEffect(() => {
     const newSocket = io(socketUrl);
     
-    // Register the user if logged in, otherwise as Guest
-    const userName = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).name : 'Guest';
-    newSocket.emit('registerUser', userName);
+    // Register the user if logged in
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      newSocket.emit('registerUser', JSON.parse(userData).name);
+    }
 
     newSocket.on('onlineUsersCount', (count) => {
       setOnlineCount(count);

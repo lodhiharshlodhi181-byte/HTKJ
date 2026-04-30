@@ -45,14 +45,13 @@ io.on('connection', (socket) => {
   
   // Register user with their name
   socket.on('registerUser', (name) => {
-    globalOnlineUsers.set(socket.id, name);
-    io.emit('onlineUsersCount', io.engine.clientsCount);
-    io.emit('onlineUsersList', Array.from(globalOnlineUsers.values()));
+    if (name && name !== 'Guest') {
+      globalOnlineUsers.set(socket.id, name);
+    }
+    const uniqueUsers = Array.from(new Set(globalOnlineUsers.values()));
+    io.emit('onlineUsersCount', uniqueUsers.length);
+    io.emit('onlineUsersList', uniqueUsers);
   });
-
-  // Broadcast total online users count
-  io.emit('onlineUsersCount', io.engine.clientsCount);
-  io.emit('onlineUsersList', Array.from(globalOnlineUsers.values()));
 
   const broadcastActiveRooms = () => {
     const activeRooms = Object.keys(rooms)
@@ -115,10 +114,12 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
     
-    globalOnlineUsers.delete(socket.id);
-    // Broadcast updated total online users count
-    io.emit('onlineUsersCount', io.engine.clientsCount);
-    io.emit('onlineUsersList', Array.from(globalOnlineUsers.values()));
+    if (globalOnlineUsers.has(socket.id)) {
+      globalOnlineUsers.delete(socket.id);
+      const uniqueUsers = Array.from(new Set(globalOnlineUsers.values()));
+      io.emit('onlineUsersCount', uniqueUsers.length);
+      io.emit('onlineUsersList', uniqueUsers);
+    }
 
     for (const roomId in rooms) {
       const room = rooms[roomId];
