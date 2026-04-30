@@ -27,3 +27,9 @@ API.interceptors.response.use(
 export const getDashboardStats = () => API.get("/user/dashboard");
 export const getAnalyticsData = () => API.get("/user/analytics");
 export const submitQuizResult = (data) => API.post("/quiz/submit", data);
+export const savePaper = (data) => API.post("/paper/upload", data);
+export const getStudyBuddies = () => API.get("/user/matchmaking");
+
+// SRS endpoints
+export const getDueCards = () => API.get("/srs/due");
+export const reviewCard = (cardId, quality) => API.post(`/srs/review/${cardId}`, { quality });

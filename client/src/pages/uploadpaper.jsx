@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UploadCloud, FileText, ChevronRight, Activity, FileStack, BookOpen, Star, X } from 'lucide-react';
 import axios from 'axios';
+import { savePaper } from '../assets/services/userAPI';
 
 const UploadPaper = () => {
   const [files, setFiles] = useState([]);
@@ -48,6 +49,17 @@ const UploadPaper = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setAnalysisResult(res.data);
+
+      try {
+        await savePaper({
+          title: files[0]?.name || "PYQ Analysis",
+          subject: res.data.expectedTopics?.[0] || "General Topic",
+          extractedTopics: res.data.expectedTopics || [],
+          filePath: files[0]?.name || "uploaded.pdf"
+        });
+      } catch (dbErr) {
+        console.error("Error saving PYQ to dashboard:", dbErr);
+      }
     } catch (err) {
       console.error(err);
       alert('Error analyzing paper. Make sure Python AI backend is running.');

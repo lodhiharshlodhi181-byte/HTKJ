@@ -23,6 +23,12 @@ const Quiz = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [finalScore, setFinalScore] = useState(null);
   
+  // Strict Exam Mode State
+  const [isStrictMode, setIsStrictMode] = useState(false);
+  const [violationCount, setViolationCount] = useState(0);
+  const [showViolationModal, setShowViolationModal] = useState(false);
+  const [violationMessage, setViolationMessage] = useState("");
+  
   // Group Quiz State
   const [quizMode, setQuizMode] = useState('solo'); // 'solo', 'group_setup', 'group_lobby'
   const [roomId, setRoomId] = useState('');
@@ -109,6 +115,49 @@ const Quiz = () => {
     return () => clearTimeout(timerObj);
   }, [timeLeft, isSubmitted]);
 
+  // Anti-Cheat Listeners
+  useEffect(() => {
+    if (!isStrictMode || isSubmitted || !quizData || roomState !== 'playing' && quizMode !== 'solo') return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        handleViolation("You switched tabs or minimized the window!");
+      }
+    };
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        handleViolation("You exited full-screen mode!");
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [isStrictMode, isSubmitted, quizData, roomState, quizMode]);
+
+  const handleViolation = (msg) => {
+    setViolationCount(prev => {
+      const newCount = prev + 1;
+      setViolationMessage(`${msg} This is warning ${newCount} of 2. Focus on the test!`);
+      setShowViolationModal(true);
+      
+      if (newCount >= 2) {
+        setTimeout(() => {
+          handleSubmit();
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(err => console.log(err));
+          }
+        }, 3000);
+      }
+      return newCount;
+    });
+  };
+
   const formatTime = (seconds) => {
     if (seconds === null) return "";
     const m = Math.floor(seconds / 60);
@@ -152,6 +201,13 @@ const Quiz = () => {
         } else {
           setTimeLeft(null);
         }
+        if (isStrictMode) {
+          try {
+            document.documentElement.requestFullscreen();
+          } catch(err) {
+            console.log(err);
+          }
+        }
       }
     } catch (err) {
       alert('Error generating quiz.');
@@ -176,6 +232,16 @@ const Quiz = () => {
     }
   };
 
+  useEffect(() => {
+    if (roomState === 'playing' && isStrictMode) {
+      try {
+        document.documentElement.requestFullscreen();
+      } catch(err) {
+        console.log(err);
+      }
+    }
+  }, [roomState, isStrictMode]);
+
   const handleSelectAnswer = (qIndex, option) => {
     if (isSubmitted) return;
     setSelectedAnswers(prev => ({
@@ -197,18 +263,22 @@ const Quiz = () => {
       setFinalScore(currentScore);
       setIsSubmitted(true);
 
-      if (quizMode === 'solo') {
-        const payload = {
-          topic,
-          difficulty,
-          questions: quizData,
-          selectedAnswers
-        };
-        await submitQuizResult(payload);
-      } else {
-        // Group Quiz
+      const payload = {
+        topic: topic || "Group Quiz",
+        difficulty: difficulty || "mixed",
+        questions: quizData,
+        selectedAnswers
+      };
+      await submitQuizResult(payload);
+
+      if (quizMode !== 'solo') {
+        // Group Quiz socket update
         socket.emit('submitScore', { roomId, score: currentScore, answers: selectedAnswers });
         setRoomState('finished');
+      }
+      
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => console.log(err));
       }
       
     } catch (err) {
@@ -285,6 +355,32 @@ const Quiz = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-16">
       
+      {/* Violation Modal */}
+      {showViolationModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-red-950/80 border-2 border-red-500 p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.4)] animate-bounce-short">
+            <AlertCircle size={60} className="text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-black text-red-400 mb-2">WARNING {violationCount}/2</h2>
+            <p className="text-white mb-6 text-lg">{violationMessage}</p>
+            {violationCount < 2 ? (
+              <button 
+                onClick={() => {
+                  setShowViolationModal(false);
+                  if (isStrictMode && !document.fullscreenElement) {
+                     document.documentElement.requestFullscreen().catch(e=>console.log(e));
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-full font-bold transition-all w-full"
+              >
+                Return to Exam
+              </button>
+            ) : (
+              <p className="text-red-300 font-bold animate-pulse">Auto-submitting your exam...</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Setup Phase */}
       {!isSubmitted && roomState !== 'playing' && quizMode !== 'group_lobby' && (
         <div className="glass-card p-8 text-center space-y-6 relative overflow-hidden">
@@ -433,6 +529,18 @@ const Quiz = () => {
                     <option value={5} className="bg-[#030014]">5 Mins</option>
                     <option value={10} className="bg-[#030014]">10 Mins</option>
                   </select>
+                )}
+
+                {quizMode === 'solo' && (
+                  <label className="flex items-center gap-2 cursor-pointer bg-black/30 border border-white/10 px-4 py-3 rounded-lg text-red-400 hover:bg-white/5 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      checked={isStrictMode} 
+                      onChange={(e) => setIsStrictMode(e.target.checked)}
+                      className="accent-red-500 w-4 h-4 cursor-pointer"
+                    />
+                    <span className="font-bold text-sm">Strict Exam Mode</span>
+                  </label>
                 )}
 
                 <button 

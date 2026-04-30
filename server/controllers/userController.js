@@ -157,4 +157,28 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardStats, getAnalyticsData };
+const getStudyBuddies = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const currentUser = await require('../models/User').findById(userId);
+    
+    if (!currentUser) return res.status(404).json({ message: "User not found" });
+
+    // Matchmaking logic: Find other users whose strong topics intersect with my weak topics,
+    // OR whose weak topics intersect with my strong topics
+    const buddies = await require('../models/User').find({
+      _id: { $ne: userId },
+      $or: [
+        { strongTopics: { $in: currentUser.weakTopics } },
+        { weakTopics: { $in: currentUser.strongTopics } }
+      ]
+    }).select('name email strongTopics weakTopics');
+
+    res.json(buddies);
+  } catch (error) {
+    console.error('Error fetching study buddies:', error);
+    res.status(500).json({ message: 'Server error retrieving study buddies' });
+  }
+};
+
+module.exports = { getDashboardStats, getAnalyticsData, getStudyBuddies };

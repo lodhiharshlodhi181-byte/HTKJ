@@ -29,7 +29,8 @@ app.use('/api/user', require('./routes/userRoutes'));
 // Placeholder routes for later implementation
 // app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/quiz', require('./routes/quizRoutes'));
-// app.use('/api/paper', require('./routes/paperRoutes'));
+app.use('/api/paper', require('./routes/paperRoutes'));
+app.use('/api/srs', require('./routes/srsRoutes'));
 
 const PORT = process.env.PORT || 5000;
 
@@ -111,6 +112,20 @@ io.on('connection', (socket) => {
       }
     }
   });
+
+  // Matchmaking Chat Logic
+  socket.on('joinChat', (chatRoomId) => {
+    socket.join(chatRoomId);
+  });
+
+  socket.on('leaveChat', (chatRoomId) => {
+    socket.leave(chatRoomId);
+  });
+
+  socket.on('chatMessage', ({ chatRoomId, senderName, text }) => {
+    io.to(chatRoomId).emit('chatMessage', { senderName, text, timestamp: new Date() });
+  });
+
 });
 
 server.listen(PORT, () => {

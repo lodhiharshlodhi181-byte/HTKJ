@@ -1,5 +1,6 @@
 const Quiz = require('../models/Quiz');
 const Result = require('../models/Result');
+const Flashcard = require('../models/Flashcard');
 
 const submitQuiz = async (req, res) => {
   try {
@@ -19,6 +20,7 @@ const submitQuiz = async (req, res) => {
     let score = 0;
     let weakTopics = [];
     const totalQuestions = questions.length;
+    let flashcardsToCreate = [];
 
     questions.forEach((q, index) => {
       const userAnswer = selectedAnswers[index];
@@ -32,8 +34,22 @@ const submitQuiz = async (req, res) => {
         if (!weakTopics.includes(topic)) {
           weakTopics.push(topic);
         }
+        
+        flashcardsToCreate.push({
+          user: userId,
+          topic: topic,
+          questionText: q.questionText,
+          correctAnswer: q.correctAnswer,
+          options: q.options || [],
+          explanation: q.explanation || "No explanation provided.",
+          nextReviewDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // Tomorrow
+        });
       }
     });
+
+    if (flashcardsToCreate.length > 0) {
+      await Flashcard.insertMany(flashcardsToCreate);
+    }
 
     // 3. Mark Result in DB
     const result = await Result.create({
@@ -43,6 +59,23 @@ const submitQuiz = async (req, res) => {
       totalQuestions,
       weakTopics
     });
+
+    // 4. Update User Profile Strong/Weak Topics for Matchmaking
+    const user = await require('../models/User').findById(userId);
+    if (user) {
+      if (score >= totalQuestions * 0.7) {
+        if (!user.strongTopics.includes(topic)) {
+          user.strongTopics.push(topic);
+        }
+        user.weakTopics = user.weakTopics.filter(t => t !== topic);
+      } else {
+        if (!user.weakTopics.includes(topic)) {
+          user.weakTopics.push(topic);
+        }
+        user.strongTopics = user.strongTopics.filter(t => t !== topic);
+      }
+      await user.save();
+    }
 
     res.status(201).json({ message: 'Quiz evaluated and submitted successfully', result, score });
   } catch (error) {

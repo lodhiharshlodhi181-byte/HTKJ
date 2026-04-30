@@ -11,6 +11,9 @@ import Login from './pages/login';
 import LearningPath from './pages/LearningPath';
 import StudyNotes from './pages/StudyNotes';
 import EvaluateAssignment from './pages/EvaluateAssignment';
+import VivaMode from './pages/VivaMode';
+import Matchmaking from './pages/Matchmaking';
+import SRS from './pages/SRS';
 
 function App() {
   return (
@@ -29,6 +32,9 @@ function App() {
             <Route path="/learning-path" element={<LearningPath />} />
             <Route path="/notes" element={<StudyNotes />} />
             <Route path="/evaluate" element={<EvaluateAssignment />} />
+            <Route path="/viva" element={<VivaMode />} />
+            <Route path="/matchmaking" element={<Matchmaking />} />
+            <Route path="/srs" element={<SRS />} />
           </Routes>
         </main>
       </div>

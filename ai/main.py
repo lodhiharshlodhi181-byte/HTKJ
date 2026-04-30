@@ -13,6 +13,7 @@ from scripts.performance import detect_weak_topics
 from scripts.learning_path import generate_learning_path
 from scripts.notes_generator import generate_study_notes
 from scripts.assignment_evaluator import evaluate_assignment
+from scripts.viva_examiner import conduct_viva
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -82,6 +83,11 @@ class QuizRequest(BaseModel):
     difficulty: Optional[str] = "medium"
     num_questions: Optional[int] = 5
 
+class VivaRequest(BaseModel):
+    query: str
+    topic: str
+    history: list = []
+
 @app.get("/")
 def read_root():
     return {"status": "AI Engine is running"}
@@ -93,6 +99,10 @@ def handle_doubt(req: DoubtRequest):
 @app.post("/api/ai/quiz")
 def handle_quiz_generation(req: QuizRequest):
     return generate_quiz(req.topic, req.difficulty, req.num_questions)
+
+@app.post("/api/ai/viva")
+def handle_viva(req: VivaRequest):
+    return conduct_viva(req.query, req.history, req.topic)
 
 @app.post("/api/ai/analyze-paper")
 def handle_paper_upload(files: List[UploadFile] = File(...)):
