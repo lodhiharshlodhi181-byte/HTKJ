@@ -7,6 +7,7 @@ export default function Login() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [skillsStr, setSkillsStr] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -21,7 +22,8 @@ export default function Login() {
       if (isLogin) {
         res = await loginUser({ email, password });
       } else {
-        res = await registerUser({ name, email, password });
+        const skillsArray = skillsStr.split(',').map(s => s.trim()).filter(s => s !== "");
+        res = await registerUser({ name, email, password, skills: skillsArray });
       }
       
       const { token, ...userData } = res.data;
@@ -58,17 +60,29 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
           {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required={!isLogin}
-                placeholder="John Doe"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required={!isLogin}
+                  placeholder="John Doe"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Your Skills (comma-separated)</label>
+                <input
+                  type="text"
+                  value={skillsStr}
+                  onChange={(e) => setSkillsStr(e.target.value)}
+                  placeholder="e.g. React, Node.js, Python"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
+                />
+              </div>
+            </>
           )}
           
           <div>
