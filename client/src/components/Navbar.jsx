@@ -1,11 +1,40 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sparkles, LayoutDashboard, MessageSquare, BookOpen, Upload, PieChart, Sun, Moon, Map, FileText, Award, Users, RefreshCw } from 'lucide-react';
+import { io } from 'socket.io-client';
+
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const socketUrl = import.meta.env.VITE_SOCKET_URL || apiUrl.replace(/\/api$/, '');
 
 const Navbar = () => {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
   const [theme, setTheme] = React.useState('dark');
+  const [onlineCount, setOnlineCount] = React.useState(0);
+  const [onlineUsersList, setOnlineUsersList] = React.useState([]);
+  const [showOnlineUsers, setShowOnlineUsers] = React.useState(false);
+
+  React.useEffect(() => {
+    const newSocket = io(socketUrl);
+    
+    // Register the user if logged in, otherwise as Guest
+    const userName = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).name : 'Guest';
+    newSocket.emit('registerUser', userName);
+
+    newSocket.on('onlineUsersCount', (count) => {
+      setOnlineCount(count);
+    });
+
+    newSocket.on('onlineUsersList', (list) => {
+      // Remove duplicates and filter empty
+      const uniqueNames = [...new Set(list.filter(n => n))];
+      setOnlineUsersList(uniqueNames);
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
 
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -91,6 +120,39 @@ const Navbar = () => {
           >
             {theme === 'dark' ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-indigo-600" />}
           </button>
+          
+          {/* Online Counter UI */}
+          <div className="relative">
+            <div 
+              onClick={() => setShowOnlineUsers(!showOnlineUsers)}
+              className="flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 cursor-pointer border border-green-500/20 px-3 py-1.5 rounded-full transition-colors" 
+              title="Students Online"
+            >
+              <div className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+              </div>
+              <span className="text-sm font-bold text-green-400">{onlineCount}</span>
+            </div>
+            
+            {/* Dropdown for Online Users */}
+            {showOnlineUsers && (
+              <div className="absolute top-12 right-0 w-48 bg-black/90 border border-green-500/30 rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.2)] py-2 z-[100] animate-fade-in backdrop-blur-md">
+                <div className="px-4 py-2 border-b border-white/10 mb-2">
+                  <span className="text-xs font-bold text-green-400 uppercase tracking-wider">Online Now</span>
+                </div>
+                <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                  {onlineUsersList.map((name, i) => (
+                    <div key={i} className="px-4 py-1.5 flex items-center gap-2 text-sm text-gray-200">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                      <span className="truncate">{name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {user ? (
             <div 
               onClick={handleLogout}

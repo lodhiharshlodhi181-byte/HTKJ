@@ -37,8 +37,22 @@ const PORT = process.env.PORT || 5000;
 // Socket.io Group Quiz Logic
 const rooms = {}; // { roomId: { host: socketId, players: [{id, name, score, answers}], quizData: [], state: 'waiting' | 'playing' | 'finished' } }
 
+// Global Online Users Map
+const globalOnlineUsers = new Map(); // socket.id -> name
+
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
+  
+  // Register user with their name
+  socket.on('registerUser', (name) => {
+    globalOnlineUsers.set(socket.id, name);
+    io.emit('onlineUsersCount', io.engine.clientsCount);
+    io.emit('onlineUsersList', Array.from(globalOnlineUsers.values()));
+  });
+
+  // Broadcast total online users count
+  io.emit('onlineUsersCount', io.engine.clientsCount);
+  io.emit('onlineUsersList', Array.from(globalOnlineUsers.values()));
 
   const broadcastActiveRooms = () => {
     const activeRooms = Object.keys(rooms)
@@ -100,6 +114,12 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    
+    globalOnlineUsers.delete(socket.id);
+    // Broadcast updated total online users count
+    io.emit('onlineUsersCount', io.engine.clientsCount);
+    io.emit('onlineUsersList', Array.from(globalOnlineUsers.values()));
+
     for (const roomId in rooms) {
       const room = rooms[roomId];
       room.players = room.players.filter(p => p.id !== socket.id);
