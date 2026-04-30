@@ -8,7 +8,7 @@ def generate_learning_path(topic: str):
         return {"error": "Gemini API Key not found. Please add to .env!"}
     
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-pro")
     
     prompt = f"""
     You are an expert AI Tutor. Create a comprehensive, step-by-step personalized learning path for the topic: '{topic}'.

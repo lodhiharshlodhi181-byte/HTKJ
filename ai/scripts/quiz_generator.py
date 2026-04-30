@@ -13,7 +13,7 @@ def generate_quiz(topic: str, difficulty: str = "medium", num_questions: int = 5
         }]
     
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash", generation_config={"response_mime_type": "application/json"})
+    model = genai.GenerativeModel("gemini-pro")
     
     prompt = f"Generate a {num_questions}-question JSON array of multiple choice questions about '{topic}' at a {difficulty} level. Format: [{{'questionText': '...', 'options': ['...', ...], 'correctAnswer': '...', 'explanation': '...'}}]"
     try:

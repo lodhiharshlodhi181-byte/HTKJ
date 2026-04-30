@@ -7,7 +7,7 @@ def conduct_viva(query: str, history: list, topic: str):
         return "Please configure the Gemini API Key to start the Viva."
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-pro")
     
     chat_history = []
     

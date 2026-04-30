@@ -7,7 +7,7 @@ def generate_study_notes(topic: str):
         return {"error": "Gemini API Key not found. Please add to .env!"}
     
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-pro")
     
     prompt = f"""
     You are an expert Professor generating high-quality study notes.
