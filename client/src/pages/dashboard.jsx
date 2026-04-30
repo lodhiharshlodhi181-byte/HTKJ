@@ -1,10 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, TrendingUp, AlertTriangle, FileText, Loader2 } from 'lucide-react';
-import { getDashboardStats } from '../assets/services/userAPI';
+import { BookOpen, TrendingUp, AlertTriangle, FileText, Loader2, Activity } from 'lucide-react';
+import { getDashboardStats, getAnalyticsData } from '../assets/services/userAPI';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [user, setUser] = useState(null);
@@ -23,10 +47,14 @@ const Dashboard = () => {
       console.warn("Invalid user data in local storage");
     }
 
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await getDashboardStats();
-        setStats(data);
+        const [statsRes, analyticsRes] = await Promise.all([
+          getDashboardStats(),
+          getAnalyticsData()
+        ]);
+        setStats(statsRes.data);
+        setAnalytics(analyticsRes.data);
       } catch (err) {
         console.error("Dashboard API Error:", err);
         setError("Failed to load real-time analytics.");
@@ -35,7 +63,7 @@ const Dashboard = () => {
       }
     };
 
-    fetchStats();
+    fetchData();
   }, [navigate]);
 
   if (loading) {
@@ -55,6 +83,41 @@ const Dashboard = () => {
     );
   }
 
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: { color: 'rgba(255, 255, 255, 0.7)' }
+      },
+    },
+    scales: {
+      y: {
+        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+      },
+      x: {
+        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+      }
+    }
+  };
+
+  const chartData = {
+    labels: analytics?.labels || ['Week 1', 'Week 2'],
+    datasets: [
+      {
+        fill: true,
+        label: 'Average Score Progress (%)',
+        data: analytics?.scoreData || [0, 0],
+        borderColor: 'rgb(168, 85, 247)',
+        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+        tension: 0.4
+      },
+    ],
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
@@ -71,44 +134,74 @@ const Dashboard = () => {
         <StatCard icon={<TrendingUp />} label="Avg Score" value={`${stats?.avgScore || "0"}%`} color="from-green-500 to-emerald-500" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="glass-card p-6 h-64 flex flex-col overflow-hidden">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <AlertTriangle className="text-orange-400" /> Focus Areas
+      <div className="glass-card p-6 h-80 flex flex-col">
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Activity className="text-purple-400" /> Performance Analytics
+        </h3>
+        <div className="flex-1 w-full relative">
+          <Line options={chartOptions} data={chartData} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Focus Areas (Weak Topics) */}
+        <div className="glass-card p-6 h-64 flex flex-col overflow-hidden border-t-4 border-red-500/50">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <AlertTriangle className="text-red-400" /> Focus Areas
           </h3>
-          <div className="flex-1 space-y-3 mt-2 overflow-y-auto pr-2">
+          <div className="flex-1 space-y-3 mt-2 overflow-y-auto pr-2 custom-scrollbar">
             {stats?.focusAreas && stats.focusAreas.length > 0 ? (
               stats.focusAreas.map((focus, idx) => (
-                 <div key={idx} className="bg-white/5 border border-white/10 p-3 rounded-lg flex justify-between items-center group hover:border-purple-500/50 transition-colors">
-                  <span className="font-medium text-gray-200">{focus.topic}</span>
-                  <span className="text-red-400 text-sm bg-red-400/10 px-2 py-1 rounded-md">{focus.count} Misses</span>
+                 <div key={idx} className="bg-red-500/10 border border-red-500/20 p-3 rounded-lg flex justify-between items-center group">
+                  <span className="font-medium text-red-200">{focus.topic}</span>
+                  <span className="text-red-400 text-sm">{focus.count} Misses</span>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 text-center italic mt-10">You have no weak topics yet. Excellent job!</p>
+              <p className="text-gray-500 text-sm italic mt-4">You have no weak topics yet. Excellent job!</p>
             )}
           </div>
           <Link to="/quiz" className="text-sm text-purple-400 hover:text-purple-300 mt-4 self-end flex items-center gap-1 group">
-            Generate specific quiz <span className="group-hover:translate-x-1 transition-transform">→</span>
+            Practice weak areas <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
         </div>
 
-        <div className="glass-card p-6 h-64 flex flex-col overflow-hidden">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <BookOpen className="text-blue-400" /> Recent Activities
+        {/* Strong Topics */}
+        <div className="glass-card p-6 h-64 flex flex-col overflow-hidden border-t-4 border-green-500/50">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-green-400">
+            <TrendingUp size={20} /> Strong Topics
           </h3>
-          <div className="flex-1 overflow-y-auto pr-2">
+          <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+            {analytics?.strongTopics && analytics.strongTopics.length > 0 ? (
+              analytics.strongTopics.map((item, idx) => (
+                <div key={idx} className="bg-green-500/10 border border-green-500/20 p-3 rounded-lg flex justify-between items-center">
+                  <span className="font-medium text-green-200">{item.topic}</span>
+                  <span className="text-green-400 text-sm">{item.accuracy}% Acc</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm italic mt-4">No strong topics established yet.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Activities */}
+        <div className="glass-card p-6 h-64 flex flex-col overflow-hidden">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <BookOpen className="text-blue-400" size={20} /> Recent Activities
+          </h3>
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
             <ul className="space-y-4">
               {stats?.recentActivities && stats.recentActivities.length > 0 ? (
                 stats.recentActivities.map((act, idx) => (
                   <li key={idx} className="flex items-center gap-3 text-sm group">
-                    <span className={`w-2 h-2 rounded-full ${act.type === 'quiz' ? 'bg-purple-500' : 'bg-blue-500'} group-hover:scale-150 transition-transform`}></span>
+                    <span className={`w-2 h-2 rounded-full ${act.type === 'quiz' ? 'bg-purple-500' : 'bg-blue-500'} shrink-0 group-hover:scale-150 transition-transform`}></span>
                     <span className="flex-1 text-gray-200 truncate">{act.title}</span>
-                    <span className="text-gray-500 text-xs whitespace-nowrap">{new Date(act.createdAt).toLocaleDateString()}</span>
+                    <span className="text-gray-500 text-[10px] whitespace-nowrap">{new Date(act.createdAt).toLocaleDateString()}</span>
                   </li>
                 ))
               ) : (
-                <p className="text-gray-500 text-center italic mt-10">No recent activities available.</p>
+                <p className="text-gray-500 text-center italic mt-10">No recent activities.</p>
               )}
             </ul>
           </div>

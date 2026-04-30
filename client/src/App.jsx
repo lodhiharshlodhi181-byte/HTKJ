@@ -6,14 +6,12 @@ import Dashboard from './pages/dashboard';
 import AIChat from './pages/AIchat';
 import Quiz from './pages/quiz';
 import UploadPaper from './pages/uploadpaper';
-import Analytics from './pages/analytics';
 import Login from './pages/login';
 import LearningPath from './pages/LearningPath';
-import StudyNotes from './pages/StudyNotes';
+import StudyMaterial from './pages/StudyMaterial';
 import EvaluateAssignment from './pages/EvaluateAssignment';
 import VivaMode from './pages/VivaMode';
 import Matchmaking from './pages/Matchmaking';
-import SRS from './pages/SRS';
 
 function App() {
   return (
@@ -25,18 +23,15 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/chat" element={<AIChat />} />
             <Route path="/quiz" element={<Quiz />} />
-            <Route path="/upload" element={<UploadPaper />} />
-            <Route path="/analytics" element={<Analytics />} />
             <Route path="/learning-path" element={<LearningPath />} />
-            <Route path="/notes" element={<StudyNotes />} />
+            <Route path="/study" element={<StudyMaterial />} />
             <Route path="/evaluate" element={<EvaluateAssignment />} />
             <Route path="/viva" element={<VivaMode />} />
             <Route path="/matchmaking" element={<Matchmaking />} />
-            <Route path="/srs" element={<SRS />} />
           </Routes>
         </main>
+        <AIChat />
       </div>
     </Router>
   );

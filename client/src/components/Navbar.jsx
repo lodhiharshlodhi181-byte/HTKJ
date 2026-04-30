@@ -82,15 +82,11 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
     { name: 'Path', path: '/learning-path', icon: <Map size={18} /> },
-    { name: 'Notes', path: '/notes', icon: <FileText size={18} /> },
+    { name: 'Study Hub', path: '/study', icon: <FileText size={18} /> },
     { name: 'Evaluate', path: '/evaluate', icon: <Award size={18} /> },
-    { name: 'AI Tutor', path: '/chat', icon: <MessageSquare size={18} /> },
-    { name: 'Peers', path: '/matchmaking', icon: <Users size={18} /> },
-    { name: 'Revision', path: '/srs', icon: <RefreshCw size={18} /> },
+    { name: 'SkillSwap', path: '/matchmaking', icon: <Users size={18} /> },
     { name: 'Quizzes', path: '/quiz', icon: <BookOpen size={18} /> },
     { name: 'Viva', path: '/viva', icon: <MessageSquare size={18} /> },
-    { name: 'PYQ Upload', path: '/upload', icon: <Upload size={18} /> },
-    { name: 'Analytics', path: '/analytics', icon: <PieChart size={18} /> },
   ];
 
   return (
