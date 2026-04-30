@@ -39,7 +39,7 @@ def analyze_paper(files: List[UploadFile]):
         }
         
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-flash-latest", generation_config={"response_mime_type": "application/json"})
+    model = genai.GenerativeModel("gemini-1.5-flash", generation_config={"response_mime_type": "application/json"})
     
     prompt = f"""
     You are an expert academic professor. I am providing you with text extracted from {len(files)} previous year question papers.
