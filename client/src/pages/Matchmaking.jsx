@@ -18,28 +18,30 @@ const Matchmaking = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    let parsedUser = null;
     const userStr = localStorage.getItem('user');
     if (userStr) {
-      setCurrentUser(JSON.parse(userStr));
+      parsedUser = JSON.parse(userStr);
+      setCurrentUser(parsedUser);
     }
 
-    const fetchBuddies = async () => {
-      try {
-        const res = await getStudyBuddies();
-        setBuddies(res.data);
-      } catch (err) {
-        console.error("Error fetching buddies", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBuddies();
+    setLoading(false); // No API call needed anymore
 
     const newSocket = io(socketUrl);
     setSocket(newSocket);
 
     newSocket.on('chatMessage', (msg) => {
       setMessages(prev => [...prev, msg]);
+    });
+
+    newSocket.on('onlineUsersList', (list) => {
+      // Filter out the current user so they don't see themselves
+      if (parsedUser) {
+        const others = list.filter(u => u._id !== parsedUser._id);
+        setBuddies(others);
+      } else {
+        setBuddies(list);
+      }
     });
 
     return () => {
@@ -114,25 +116,34 @@ const Matchmaking = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {buddies.map(buddy => (
-            <div key={buddy._id} className="glass-card p-6 border border-white/10 hover:border-blue-500/50 transition-all group">
+            <div key={buddy._id} className="glass-card p-6 border border-white/10 hover:border-blue-500/50 transition-all group relative">
+              
+              <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-green-500/20 px-2 py-1 rounded-full border border-green-500/30">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span className="text-[10px] text-green-400 font-bold uppercase tracking-wider">Live</span>
+              </div>
+
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-xl shadow-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-xl shadow-lg shrink-0">
                   {buddy.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-gray-100">{buddy.name}</h3>
-                  <p className="text-xs text-gray-400 flex items-center gap-1"><Target size={12} /> {buddy.strongTopics.length} Strong Topics</p>
+                  <h3 className="font-bold text-lg text-gray-100 pr-12">{buddy.name}</h3>
+                  <p className="text-xs text-gray-400 flex items-center gap-1"><Target size={12} /> {buddy.skills?.length || 0} Skills</p>
                 </div>
               </div>
               
               <div className="space-y-3 mb-6">
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-green-400 font-bold mb-1 flex items-center gap-1"><Zap size={14}/> They can teach you:</p>
+                  <p className="text-xs uppercase tracking-wider text-green-400 font-bold mb-2 flex items-center gap-1"><Zap size={14}/> Top Skills:</p>
                   <div className="flex flex-wrap gap-2">
-                    {buddy.strongTopics.slice(0, 3).map((t, i) => (
-                      <span key={i} className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-md border border-green-500/30">{t}</span>
-                    ))}
-                    {buddy.strongTopics.length === 0 && <span className="text-xs text-gray-500 italic">Not defined yet</span>}
+                    {buddy.skills && buddy.skills.length > 0 ? (
+                      buddy.skills.slice(0, 3).map((t, i) => (
+                        <span key={i} className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-md border border-green-500/30">{t}</span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-gray-500 italic">No skills listed</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -166,7 +177,7 @@ const Matchmaking = () => {
           <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 italic mt-10">
-                Say hi to {activeChat.name}! They can help you with {activeChat.strongTopics[0] || 'your studies'}.
+                Say hi to {activeChat.name}! They can help you with {activeChat.skills?.[0] || 'your studies'}.
               </div>
             ) : (
               messages.map((msg, i) => {

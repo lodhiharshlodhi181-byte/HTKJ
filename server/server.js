@@ -43,12 +43,19 @@ const globalOnlineUsers = new Map(); // socket.id -> name
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
   
-  // Register user with their name
-  socket.on('registerUser', (name) => {
-    if (name && name !== 'Guest') {
-      globalOnlineUsers.set(socket.id, name);
+  // Register user with their data object
+  socket.on('registerUser', (userData) => {
+    if (userData && userData.name && userData.name !== 'Guest') {
+      globalOnlineUsers.set(socket.id, userData);
     }
-    const uniqueUsers = Array.from(new Set(globalOnlineUsers.values()));
+    
+    // Deduplicate by name
+    const uniqueUsersMap = new Map();
+    globalOnlineUsers.forEach(user => {
+      uniqueUsersMap.set(user.name, user);
+    });
+    const uniqueUsers = Array.from(uniqueUsersMap.values());
+    
     io.emit('onlineUsersCount', uniqueUsers.length);
     io.emit('onlineUsersList', uniqueUsers);
   });
@@ -116,7 +123,13 @@ io.on('connection', (socket) => {
     
     if (globalOnlineUsers.has(socket.id)) {
       globalOnlineUsers.delete(socket.id);
-      const uniqueUsers = Array.from(new Set(globalOnlineUsers.values()));
+      
+      const uniqueUsersMap = new Map();
+      globalOnlineUsers.forEach(user => {
+        uniqueUsersMap.set(user.name, user);
+      });
+      const uniqueUsers = Array.from(uniqueUsersMap.values());
+      
       io.emit('onlineUsersCount', uniqueUsers.length);
       io.emit('onlineUsersList', uniqueUsers);
     }

@@ -20,7 +20,12 @@ const Navbar = () => {
     // Register the user if logged in
     const userData = localStorage.getItem('user');
     if (userData) {
-      newSocket.emit('registerUser', JSON.parse(userData).name);
+      const parsedUser = JSON.parse(userData);
+      newSocket.emit('registerUser', { 
+        _id: parsedUser._id, 
+        name: parsedUser.name, 
+        skills: parsedUser.skills || [] 
+      });
     }
 
     newSocket.on('onlineUsersCount', (count) => {
@@ -28,9 +33,8 @@ const Navbar = () => {
     });
 
     newSocket.on('onlineUsersList', (list) => {
-      // Remove duplicates and filter empty
-      const uniqueNames = [...new Set(list.filter(n => n))];
-      setOnlineUsersList(uniqueNames);
+      // List is now an array of objects
+      setOnlineUsersList(list || []);
     });
 
     return () => {
@@ -140,10 +144,10 @@ const Navbar = () => {
                   <span className="text-xs font-bold text-green-400 uppercase tracking-wider">Online Now</span>
                 </div>
                 <div className="max-h-48 overflow-y-auto custom-scrollbar">
-                  {onlineUsersList.map((name, i) => (
+                  {onlineUsersList.map((user, i) => (
                     <div key={i} className="px-4 py-1.5 flex items-center gap-2 text-sm text-gray-200">
                       <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                      <span className="truncate">{name}</span>
+                      <span className="truncate">{user.name}</span>
                     </div>
                   ))}
                 </div>
